@@ -6,9 +6,6 @@ const jsonParser = bodyParser.json()
 const connection = require('./database')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const passport = require("passport");
-const ExtractJwt = require("passport-jwt").ExtractJwt;
-const JwtStrategy = require("passport-jwt").Strategy;
 const secret = 'username-login'
 const saltBounds = 10;
 
