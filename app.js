@@ -5,11 +5,44 @@ const bodyParser = require('body-parser')
 const jsonParser = bodyParser.json()
 const connection = require('./database')
 const jwt = require('jsonwebtoken')
-const secret = 'username-login'
 const bcrypt = require('bcrypt')
+const passport = require("passport");
+const ExtractJwt = require("passport-jwt").ExtractJwt;
+const JwtStrategy = require("passport-jwt").Strategy;
+const secret = 'username-login'
 const saltBounds = 10;
 
 app.use(cors())
+
+const middleware = (req,res,next)=>{
+    try {
+        const token = req.headers.authorization
+        const decoded = jwt.verify(token.split(' ')[1], secret)
+        next()
+    }catch (err){
+        res.json({status:'error', message: err.message})
+    }
+}
+
+const adminMiddleware = (req,res,next)=>{
+    try {
+        const token = req.headers.authorization
+        jwt.verify(token.split(' ')[1], secret, function (err, decoded){
+            if (decoded.username ==='admin'){
+                next
+            }
+            else 
+                res.json({status:'error',message:"u r not admin"})
+        })
+        next()
+    }catch (err){
+        res.json({status:'error', message: err.message})
+    }
+}
+
+app.post('/admin',jsonParser,adminMiddleware,function (req,res,next){
+    res.json({status: 'Success'})
+})
 
 app.post('/register',jsonParser,function (req, res, next){
     bcrypt.hash(req.body.password, saltBounds,function (err, hashPw){
@@ -58,15 +91,14 @@ app.post('/login',jsonParser,function (req, res, next){
     )
 })
 
-app.post('/authen',jsonParser,function (req, res, next) {
+app.post('/authen',jsonParser,middleware,function (req, res, next) {
     try {
-        const token = req.headers.authorization
-        const decoded = jwt.verify(token.split(' ')[1], secret)
-        res.json({status: 'Success', decoded})
+        res.json({status: 'Success'})
     }catch (err){
         res.json({status:'error', message: err.message})
     }
 })
+
 
 app.listen(3333,function (){
     console.log('CORS-enable web server listening on port 3333')
